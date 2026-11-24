@@ -1,0 +1,4 @@
+import {
+  "Yoorkin/egg",
+  "moonbitlang/core/string",
+} for "test"

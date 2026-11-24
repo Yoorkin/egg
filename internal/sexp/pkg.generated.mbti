@@ -1,0 +1,19 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Yoorkin/egg/internal/sexp"
+
+// Values
+pub fn[T] parse(String, (Symbol, ArrayView[T]) -> T) -> Result[T, (Int32, String)]
+
+pub fn write_symbol(StringBuilder, String) -> Unit
+
+// Errors
+
+// Types and methods
+pub struct Symbol {
+  text : String
+  quoted : Bool
+}
+
+// Type aliases
+
+// Traits

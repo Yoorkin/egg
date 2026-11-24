@@ -1,0 +1,45 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Yoorkin/egg/graph"
+
+import {
+  "moonbitlang/core/debug",
+}
+
+// Values
+
+// Errors
+
+// Types and methods
+#derive(Eq, Hash, @debug.Debug)
+pub struct ENode[Op] {
+  op : Op
+  children : ReadOnlyArray[Id]
+}
+
+type Graph[Op, Data]
+#alias(new)
+pub fn[Op : Hash + Eq, Data] Graph::Graph(make~ : (Op, ReadOnlyArray[Data]) -> Data, join~ : (Data, Data) -> Data, modify? : (Self[Op, Data], Data) -> Id?) -> Self[Op, Data]
+pub fn[Op : Hash + Eq, Data] Graph::add_node(Self[Op, Data], Op, children? : ArrayView[Id]) -> Id
+pub fn[Op, Data] Graph::allocated_node_count(Self[Op, Data]) -> Int32
+pub fn[Op, Data] Graph::class_count(Self[Op, Data]) -> Int32
+pub fn[Op, Data] Graph::data(Self[Op, Data], Id) -> Data
+pub fn[Op : Hash + Eq, Data : Eq, Tree] Graph::extract(Self[Op, Data], Id, (Op) -> UInt64, (Op, ArrayView[Tree]) -> Tree) -> (UInt64, Tree)?
+pub fn[Op : Hash + Eq, Data : Eq, Tree] Graph::extract_with_cost(Self[Op, Data], Id, (Op, ArrayView[UInt64]) -> UInt64?, (Op, ArrayView[Tree]) -> Tree) -> (UInt64, Tree)?
+pub fn[Op, Data] Graph::find(Self[Op, Data], Id) -> Id
+pub fn[Op, Data : Eq] Graph::merge(Self[Op, Data], Id, Id) -> Bool
+pub fn[Op, Data] Graph::node_count(Self[Op, Data]) -> Int32
+pub fn[Op, Data] Graph::nodes(Self[Op, Data], Id) -> ReadOnlyArray[ENode[Op]]
+pub fn[Op : Hash + Eq, Data : Eq] Graph::rebuild(Self[Op, Data]) -> Unit
+
+#derive(Eq, Hash, @debug.Debug)
+type Id
+
+pub(all) enum Pattern[Op] {
+  Variable(String)
+  Node(Op, ReadOnlyArray[Pattern[Op]])
+}
+pub fn[Op : Eq, Data] Pattern::visit_matches(Self[Op], Graph[Op, Data], (Id, Map[String, Id]) -> Unit) -> Unit
+
+// Type aliases
+
+// Traits

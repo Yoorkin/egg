@@ -1,0 +1,95 @@
+// Generated using `moon info`, DON'T EDIT IT
+package "Yoorkin/egg"
+
+import {
+  "Yoorkin/egg/graph",
+  "moonbitlang/core/debug",
+}
+
+// Values
+
+// Errors
+#derive(Eq, @debug.Debug)
+pub(all) suberror ParseError {
+  InvalidSyntax(position~ : Int32, String)
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) suberror RewriteError {
+  UnboundVariable(String)
+}
+
+// Types and methods
+type Analysis[Op, Data]
+#alias(new)
+pub fn[Op, Data] Analysis::Analysis(make~ : (Op, ReadOnlyArray[Data]) -> Data, join~ : (Data, Data) -> Data, modify? : (Data) -> Expr[Op]?) -> Self[Op, Data]
+
+type EGraph[Op, Data]
+#alias(new)
+pub fn[Op : Hash + Eq] EGraph::EGraph() -> Self[Op, Unit]
+pub fn[Op : Hash + Eq, Data] EGraph::add(Self[Op, Data], Expr[Op]) -> @graph.Id
+pub fn[Op : Hash + Eq, Data] EGraph::add_node(Self[Op, Data], Op, children? : ArrayView[@graph.Id]) -> @graph.Id
+pub fn[Op, Data] EGraph::class_count(Self[Op, Data]) -> Int32
+pub fn[Op, Data] EGraph::data(Self[Op, Data], @graph.Id) -> Data
+pub fn[Op, Data] EGraph::equivalent(Self[Op, Data], @graph.Id, @graph.Id) -> Bool
+pub fn[Op : Hash + Eq, Data : Eq] EGraph::extract(Self[Op, Data], @graph.Id, weight? : (Op) -> UInt64) -> Extraction[Op]?
+pub fn[Op : Hash + Eq, Data : Eq] EGraph::extract_with_cost(Self[Op, Data], @graph.Id, cost~ : (Op, ArrayView[UInt64]) -> UInt64?) -> Extraction[Op]?
+pub fn[Op, Data] EGraph::find(Self[Op, Data], @graph.Id) -> @graph.Id
+pub fn[Op, Data : Eq] EGraph::merge(Self[Op, Data], @graph.Id, @graph.Id) -> Bool
+pub fn[Op, Data] EGraph::node_count(Self[Op, Data]) -> Int32
+pub fn[Op, Data] EGraph::nodes(Self[Op, Data], @graph.Id) -> ReadOnlyArray[@graph.ENode[Op]]
+pub fn[Op : Hash + Eq, Data : Eq] EGraph::rebuild(Self[Op, Data]) -> Unit
+pub fn[Op : Hash + Eq, Data : Eq] EGraph::run(Self[Op, Data], ArrayView[Rewrite[Op, Data]], iteration_limit? : Int32, node_limit? : Int32) -> RunResult
+pub fn[Op : Hash + Eq, Data] EGraph::with_analysis(Analysis[Op, Data]) -> Self[Op, Data]
+
+#derive(Eq, @debug.Debug)
+type Expr[Op]
+#alias(new)
+pub fn[Op] Expr::Expr(Op, children? : ArrayView[Self[Op]]) -> Self[Op]
+pub fn[Op] Expr::children(Self[Op]) -> ReadOnlyArray[Self[Op]]
+pub fn[Op] Expr::op(Self[Op]) -> Op
+pub fn Expr::parse(String) -> Self[String] raise ParseError
+pub fn Expr::to_sexp(Self[String]) -> String
+
+#derive(Eq, @debug.Debug)
+pub struct Extraction[Op] {
+  cost : UInt64
+  expr : Expr[Op]
+}
+
+pub struct Match {
+  eclass : @graph.Id
+  // private fields
+}
+pub fn Match::get(Self, String) -> @graph.Id?
+
+type Pattern[Op]
+pub fn[Op] Pattern::node(Op, children? : ArrayView[Self[Op]]) -> Self[Op]
+pub fn Pattern::parse(String) -> Self[String] raise ParseError
+pub fn[Op : Hash + Eq, Data : Eq] Pattern::search(Self[Op], EGraph[Op, Data]) -> Array[Match]
+pub fn[Op] Pattern::variable(String) -> Self[Op]
+
+type Rewrite[Op, Data]
+#alias(new)
+pub fn[Op, Data] Rewrite::Rewrite(String, Pattern[Op], Pattern[Op], condition? : (Match, (@graph.Id) -> Data) -> Bool) -> Self[Op, Data] raise RewriteError
+pub fn[Op, Data] Rewrite::name(Self[Op, Data]) -> String
+
+#derive(Eq, @debug.Debug)
+pub struct RunResult {
+  iterations : Int32
+  reason : StopReason
+}
+
+#derive(Eq, @debug.Debug)
+pub(all) enum StopReason {
+  Saturated
+  IterationLimit
+  NodeLimit
+}
+
+// Type aliases
+pub using @graph {type ENode}
+
+pub using @graph {type Id}
+
+// Traits
