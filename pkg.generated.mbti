@@ -64,8 +64,8 @@ pub struct Match {
 pub fn Match::get(Self, String) -> @graph.Id?
 
 type Pattern[Op]
+pub fn Pattern::Pattern(String) -> Self[String] raise ParseError
 pub fn[Op] Pattern::node(Op, children? : ArrayView[Self[Op]]) -> Self[Op]
-pub fn Pattern::parse(String) -> Self[String] raise ParseError
 pub fn[Op : Hash + Eq, Data : Eq] Pattern::search(Self[Op], EGraph[Op, Data]) -> Array[Match]
 pub fn[Op] Pattern::variable(String) -> Self[Op]
 

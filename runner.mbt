@@ -41,7 +41,7 @@ pub fn[Op : Hash + Eq, Data : Eq] EGraph::run(
     let old_classes = self.class_count()
     let mut reached_limit = false
     for (rhs, found) in matches {
-      let result = instantiate(rhs.0, self, found)
+      let result = instantiate(rhs.tree, self, found)
       ignore(self.merge(found.eclass, result))
       if self.node_count() >= node_limit {
         reached_limit = true

@@ -18,30 +18,20 @@ test "strength reduction and cancellation" {
   let unknown_over_unknown = graph.add(@egg.Expr::parse("(/ a a)"))
   let one = graph.add_node("1")
   let rules = [
-    @egg.Rewrite(
-      "shift",
-      @egg.Pattern::parse("(* ?x 2)"),
-      @egg.Pattern::parse("(<< ?x 1)"),
-    ),
+    @egg.Rewrite("shift", Pattern("(* ?x 2)"), Pattern("(<< ?x 1)")),
     Rewrite(
       "reassociate division",
-      @egg.Pattern::parse("(/ (* ?x ?y) ?z)"),
-      @egg.Pattern::parse("(* ?x (/ ?y ?z))"),
+      Pattern("(/ (* ?x ?y) ?z)"),
+      Pattern("(* ?x (/ ?y ?z))"),
     ),
-    Rewrite(
-      "divide nonzero by itself",
-      @egg.Pattern::parse("(/ ?x ?x)"),
-      @egg.Pattern::parse("1"),
-      condition=fn(found, read) {
-        guard found.get("?x") is Some(id) else { return false }
-        read(id)
-      },
-    ),
-    Rewrite(
-      "multiply by one",
-      @egg.Pattern::parse("(* ?x 1)"),
-      @egg.Pattern::parse("?x"),
-    ),
+    Rewrite("divide nonzero by itself", Pattern("(/ ?x ?x)"), Pattern("1"), condition=fn(
+      found,
+      read,
+    ) {
+      guard found.get("?x") is Some(id) else { return false }
+      read(id)
+    }),
+    Rewrite("multiply by one", Pattern("(* ?x 1)"), Pattern("?x")),
   ]
   let run = graph.run(rules)
   assert_eq(run.reason, Saturated)

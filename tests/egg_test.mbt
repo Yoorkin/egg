@@ -35,12 +35,12 @@ test "matching backtracks across siblings and checks repeated variables" {
   let f_b = graph.add(@egg.Expr::parse("(f b)"))
   let root = graph.add(@egg.Expr::parse("(pair (f b) (f a) a)"))
   ignore(graph.merge(f_a, f_b))
-  let matches = @egg.Pattern::parse("(pair (f ?x) (f ?x) ?x)").search(graph)
+  let matches = @egg.Pattern("(pair (f ?x) (f ?x) ?x)").search(graph)
   assert_eq(matches.length(), 1)
   assert_eq(matches[0].get("?x"), Some(a))
   assert_eq(matches[0].get("?other"), None)
   assert_eq(matches[0].eclass, graph.find(root))
-  assert_eq(@egg.Pattern::parse("(pair ?x ?y)").search(graph).length(), 0)
+  assert_eq(@egg.Pattern("(pair ?x ?y)").search(graph).length(), 0)
 }
 
 ///|
@@ -48,16 +48,8 @@ test "the runner matches each round against a stable graph" {
   let graph : @egg.EGraph[String, Unit] = EGraph()
   let root = graph.add(@egg.Expr::parse("(f x)"))
   let rules = [
-    @egg.Rewrite(
-      "f to g",
-      @egg.Pattern::parse("(f ?x)"),
-      @egg.Pattern::parse("(g ?x)"),
-    ),
-    Rewrite(
-      "g to atom",
-      @egg.Pattern::parse("(g ?x)"),
-      @egg.Pattern::parse("?x"),
-    ),
+    @egg.Rewrite("f to g", Pattern("(f ?x)"), Pattern("(g ?x)")),
+    Rewrite("g to atom", Pattern("(g ?x)"), Pattern("?x")),
   ]
   let first = graph.run(rules, iteration_limit=1)
   assert_eq(first.reason, IterationLimit)
@@ -73,11 +65,7 @@ test "the runner matches each round against a stable graph" {
 test "an expansive rule stops at the node limit with a usable graph" {
   let graph : @egg.EGraph[String, Unit] = EGraph()
   let root = graph.add(@egg.Expr::parse("(f x)"))
-  let rule = @egg.Rewrite(
-    "grow",
-    @egg.Pattern::parse("(f ?x)"),
-    @egg.Pattern::parse("(f (g ?x))"),
-  )
+  let rule = @egg.Rewrite("grow", Pattern("(f ?x)"), Pattern("(f (g ?x))"))
   let result = graph.run([rule], node_limit=6)
   assert_eq(result.reason, NodeLimit)
   assert_eq(result.iterations, 2)
@@ -121,8 +109,8 @@ test "weighted extraction handles sharing, zero-weight cycles and overflow" {
 
 ///|
 test "rewrite construction reports an unbound variable" {
-  let lhs = @egg.Pattern::parse("(f ?x)")
-  let rhs = @egg.Pattern::parse("(g ?y)")
+  let lhs = @egg.Pattern("(f ?x)")
+  let rhs = @egg.Pattern("(g ?y)")
   try (Rewrite("invalid", lhs, rhs) : @egg.Rewrite[String, Unit]) catch {
     UnboundVariable(name) => assert_eq(name, "?y")
   } noraise {
@@ -142,16 +130,13 @@ test "S-expressions handle Unicode and quoted symbols" {
   let literal = graph.add_node("?x")
   let bare_question = graph.add_node("?")
   ignore(graph.add_node("y"))
-  let matches = @egg.Pattern::parse("\"?x\"").search(graph)
+  let matches = @egg.Pattern("\"?x\"").search(graph)
   assert_eq(matches.length(), 1)
   assert_eq(matches[0].eclass, literal)
-  let bare_matches = @egg.Pattern::parse("?").search(graph)
+  let bare_matches = @egg.Pattern("?").search(graph)
   assert_eq(bare_matches.length(), 1)
   assert_eq(bare_matches[0].eclass, bare_question)
-  assert_eq(
-    @egg.Pattern::parse("?🍳").search(graph).length(),
-    graph.class_count(),
-  )
+  assert_eq(@egg.Pattern("?🍳").search(graph).length(), graph.class_count())
   for input in ["", "()", "(f", "x y", "(f a\"b\")", "\"\\q\""] {
     try @egg.Expr::parse(input) catch {
       InvalidSyntax(_, ..) => ()

@@ -1,10 +1,12 @@
 ///|
 /// A pattern matches operators and binds variables to e-classes.
-struct Pattern[Op](@graph.Pattern[Op])
+struct Pattern[Op] {
+  tree : @graph.Pattern[Op]
+}
 
 ///|
 pub fn[Op] Pattern::variable(name : String) -> Pattern[Op] {
-  Pattern(Variable(name))
+  { tree: Variable(name), }
 }
 
 ///|
@@ -12,9 +14,12 @@ pub fn[Op] Pattern::node(
   op : Op,
   children~ : ArrayView[Pattern[Op]] = [],
 ) -> Pattern[Op] {
-  Pattern(
-    Node(op, ReadOnlyArray::from_array([ for child in children => child.0 ])),
-  )
+  {
+    tree: Node(
+      op,
+      ReadOnlyArray::from_array([ for child in children => child.tree ]),
+    ),
+  }
 }
 
 ///|
@@ -47,7 +52,7 @@ fn[Op : Eq, Data] Pattern::visit_matches(
   graph : EGraph[Op, Data],
   visit : (Match) -> Unit,
 ) -> Unit {
-  self.0.visit_matches(graph.graph, fn(eclass, bindings) {
+  self.tree.visit_matches(graph.graph, fn(eclass, bindings) {
     visit({ eclass, bindings, })
   })
 }
@@ -85,7 +90,7 @@ fn[Op : Hash + Eq, Data] instantiate(
 
 ///|
 /// Parse a pattern. An unquoted leaf such as ?x binds that exact variable name.
-pub fn Pattern::parse(input : String) -> Pattern[String] raise ParseError {
+pub fn Pattern::Pattern(input : String) -> Pattern[String] raise ParseError {
   parse_sexp(input, fn(op, children) {
     let text = op.text
     if !op.quoted && children.is_empty() && text is ['?', _, ..] {

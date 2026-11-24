@@ -24,9 +24,9 @@ pub fn[Op, Data] Rewrite::Rewrite(
   condition? : (Match, (Id) -> Data) -> Bool,
 ) -> Rewrite[Op, Data] raise RewriteError {
   let vars : Map[String, Unit] = Map([])
-  visit_vars(lhs.0, name => vars[name] = ())
+  visit_vars(lhs.tree, name => vars[name] = ())
   let mut missing = None
-  visit_vars(rhs.0, fn(name) {
+  visit_vars(rhs.tree, fn(name) {
     if missing is None && !vars.contains(name) {
       missing = Some(name)
     }

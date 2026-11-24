@@ -24,30 +24,20 @@ test {
   let root = graph.add(@egg.Expr::parse("(/ (* a 2) 2)"))
 
   let rules = [
-    @egg.Rewrite(
-      "shift",
-      @egg.Pattern::parse("(* ?x 2)"),
-      @egg.Pattern::parse("(<< ?x 1)"),
-    ),
+    @egg.Rewrite("shift", Pattern("(* ?x 2)"), Pattern("(<< ?x 1)")),
     Rewrite(
       "reassociate division",
-      @egg.Pattern::parse("(/ (* ?x ?y) ?z)"),
-      @egg.Pattern::parse("(* ?x (/ ?y ?z))"),
+      Pattern("(/ (* ?x ?y) ?z)"),
+      Pattern("(* ?x (/ ?y ?z))"),
     ),
-    Rewrite(
-      "divide nonzero by itself",
-      @egg.Pattern::parse("(/ ?x ?x)"),
-      @egg.Pattern::parse("1"),
-      condition=fn(found, read) {
-        guard found.get("?x") is Some(id) else { return false }
-        read(id)
-      },
-    ),
-    Rewrite(
-      "multiply by one",
-      @egg.Pattern::parse("(* ?x 1)"),
-      @egg.Pattern::parse("?x"),
-    ),
+    Rewrite("divide nonzero by itself", Pattern("(/ ?x ?x)"), Pattern("1"), condition=fn(
+      found,
+      read,
+    ) {
+      guard found.get("?x") is Some(id) else { return false }
+      read(id)
+    }),
+    Rewrite("multiply by one", Pattern("(* ?x 1)"), Pattern("?x")),
   ]
 
   ignore(graph.run(rules))
@@ -110,8 +100,8 @@ test {
   let root = graph.add(@egg.Expr::parse("(+ (+ (+ a b) c) d)"))
   let associate = @egg.Rewrite(
     "associate addition to the right",
-    @egg.Pattern::parse("(+ (+ ?x ?y) ?z)"),
-    @egg.Pattern::parse("(+ ?x (+ ?y ?z))"),
+    Pattern("(+ (+ ?x ?y) ?z)"),
+    Pattern("(+ ?x (+ ?y ?z))"),
   )
   ignore(graph.run([associate]))
   let best = graph.extract_with_cost(root, cost=(_, children) => {
@@ -122,6 +112,14 @@ test {
 ```
 
 Use `moon check` to check the examples and `moon test` to run the library tests.
+
+## Optimization examples
+
+- [Matrix chain multiplication](examples/matrix_chain_test.mbt) finds a parenthesization that uses 3,500 scalar multiplications.
+- [SQL filter pushdown](examples/sql_filter_pushdown_test.mbt) uses column dependencies to decide which predicates can move below an inner join.
+- [List fusion](examples/list_fusion_test.mbt) combines a filter and two maps into a single fold.
+
+Run these examples with `moon test examples`.
 
 ## Package layout
 
